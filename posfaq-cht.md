@@ -41,4 +41,29 @@ PoW演素法和以鏈為基本的PoS演算法選擇資料的可用性而非資�
 
 Ittay Eyal 和 Emin Gun Sirer 的 [selfish mining 研究](https://bitcoinmagazine.com/articles/selfish-mining-a-25-attack-against-the-bitcoin-network-1383578440) 的結論 - 在不同網路環境的模型中，比特幣挖礦的激勵兼容性（incentive compatibility）分別受到 25% 及 33% 的限制，即只有在 25% 或 33% 的礦工同謀不可能發生的前提下，挖礦的機制才是激勵兼容的（即礦工按照正常的方式挖礦--有多少算力獲得多少報酬）。這個結論和傳統的共識演算法的結論無關，因為傳統共識演算法的結論並沒有牽涉到激勵兼容性。
 
-### 
+### 什麼是"零機會成本"問題及該如何解決這個問題？
+在許多之前（以鏈為基本的）PoS演算法，包含Peercoin，只有對產生區塊給予相對應的獎賞但並沒有懲罰。這在出現多條相競爭（即分叉）的鏈的情況時，會有非預期的影響，因為每個validator皆有動機在每一條相互競爭中的鏈上都產生區塊（以下將下注和產生區塊視為相同意思）來確保會獲得獎賞，如下：
+
+![](https://raw.githubusercontent.com/vbuterin/diagrams/master/possec.png)
+
+在PoW中，這麼做會導致礦工的算力被分散，導致獲利下降：
+
+![](https://github.com/vbuterin/diagrams/blob/master/powsec.png?raw=true)
+
+結果就會造成如果每個參與者都是狹義上經濟理性（narrowly economically rational）的話，則即便在沒有任何攻擊者的情況下，區塊鏈本身也沒辦法達成共識，因為每個validator都在每條鏈上下注。如果有攻擊者，攻擊者只需要贏過那些執行利他行為（altruistic）的節點（即只會在單一條鏈下注的節點）即可，不需要贏過一般經濟理性的節點。相反的在PoW，攻擊者必須要同時贏過利他節點和經濟理性節點（至少是可行的威脅：可參考SchellingCoin的 [P + epsilon 攻擊](https://blog.ethereum.org/2015/01/28/p-epsilon-attack/)）。
+
+有些人會認為下注者有動機按照規則來下注且只下注在最長的鏈上，好讓他們的投資能夠保值，然而這個論點忽略了這個動機受制於公地悲劇理論（[tragedy of the commons](https://en.wikipedia.org/wiki/Tragedy_of_the_commons)）：每個下注者可能只會有 1% 的機會成為關鍵的（pivotal）角色（即他的決定會影響一個攻擊的成敗），所以用來買通他們的賄絡金額只需要是他們總賭注金額的 1% 。因此，全部的賄賂金額只需要下注金額總額的 0.5-1% 。此外，這個（本段開頭的）論點同時暗示著任何"不可能失敗"的情況都不是一個穩定的平衡，因為不可能失敗的情況代表每個下注者成為關鍵角色的機會是零，即只要賄賂金額超過 0% 都能讓下注者有動機參與攻擊。
+
+有兩種方式可以解決這個問題。第一個以 ["Slasher"](https://blog.ethereum.org/2014/01/15/slasher-a-punitive-proof-of-stake-algorithm/))為名稱大略地描述，並進一步由 [Iddo Bentov ](https://arxiv.org/pdf/1406.5694.pdf)開發。當validator同時在不同條分叉的鏈上下注（產生區塊）的情況發生時，將證據紀錄進區塊鏈中並以此銷毀validator的下注資本。這讓動機結構改變如下：
+
+![](https://github.com/vbuterin/diagrams/blob/master/slasher1sec.png?raw=true)
+
+注意，這個演算法要能執行，validator是哪些人需要事先就知道。否則validator可以任意選擇要下注的鏈：當A鏈可下注就下注A鏈，當B鏈可下注就下注B鏈，當兩條都可以下注就下注最長的鏈。所以事先確定validator的名單可以避免這種情況發生。但這也有缺點存在，包括要求節點需要頻繁地上線來獲得安全可信的鏈的狀態，並且讓medium-range的validator共謀攻擊（例如連續三十個validator中有25個預謀發起攻擊來回復過去19個區塊）有可能發生，因為validator事先知道什麼時候會輪到他產生區塊。如果這些風險是可接受的那就沒太大問題。
+
+第二個方式單純地懲罰在錯的鏈產生區塊的validator。也就是當有兩個互相競爭的A和B鏈，如果有一個validator在B上面產生區塊，則他可在B鏈上獲得 R 的獎賞，但這個區塊的標頭（header）資料會被記錄在A鏈上（在Casper中叫做"dunkle"）且他在A鏈上會受到 F 的罰金（ F 可能等於 R ）。這會將結構改變成：
+
+![](https://github.com/vbuterin/diagrams/blob/master/slasher2sec.png?raw=true)
+
+直覺來說，我們可以把PoW的經濟模型複製到這來用。在PoW中，在錯的鏈上產生區塊同樣有懲罰，但這個懲罰並不顯而易見：礦工額外的電力或硬體成本的花費（因為要同時在兩條鏈上花費運算）。這個機制（第二個方式）的一個缺點是它將些微的風險加注到validator身上（因為validator要承擔在錯的鏈上產生區塊的成本），不過這個效應會隨者時間慢慢減退，但另一方面，優點是它不需要事先知道validator有誰。
+
+###
