@@ -153,3 +153,58 @@ Casper遵循第二種方法，不過是可以透過增加鏈上的機制，讓va
 
 第三個方法是使用 [Iddo Bentov 的 "majority beacon"](https://arxiv.org/pdf/1406.5694.pdf)，藉由之前產生的（也用 beacon 方式產生的） N 個隨機數字中的每個 bit 值的多數決來產生新的隨機數字（即，如果大多數數字的第一個 bit 為 1 ，則新的數字的第一個 bit 為 1 ，否則為 0 ）。攻擊的成本會是 `~C * sqrt(N)` ，其中 C 是攻擊其他 beacon 產生的隨機數字的成本。總之，有許多 stake grinding 的解決方法存在，這個問題比較像是 [differential cryptanalysis](https://en.wikipedia.org/wiki/Differential_cryptanalysis) 而不是 [the halting problem](https://en.wikipedia.org/wiki/Halting_problem) - 一個 PoS 設計者最終會明瞭且會知道如何克服的痛點，但不是根本且無法彌補的缺陷。
 
+###What would the equivalent of a 51% attack against Casper look like?
+
+###針對Casper對等的 51% 算力攻擊會是怎麼樣的攻擊？
+
+The most basic form of "51% attack" is a simple **finality reversion**: validators that already finalized block A then finalize some competing block A', thereby breaking the blockchain's finality guarantee. In this case, there now exist two incompatible finalized histories, creating a split of the blockchain, that full nodes would be willing to accept, and so it is up to the community to coordinate out of band to focus on one of the branches and ignore the other(s).
+
+51% 攻擊最基本的形式就是**finality reversion**：validator確立區塊A的紀錄為不可更動後又將另一個區塊A'也列為不可更動，打破區塊鏈不可更動特性的保證。在這個情況中，並存著兩個彼此不相容的歷史紀錄導致鏈產生分叉，這需仰賴社群以鏈外的方式進行協調來決定應該選擇哪條鏈，而哪條該被捨棄。
+
+This coordination could take place on social media, through private channels between block explorer providers, businesses and exchanges, various online discussion forms, and the like. The principle according to which the decision would be made is "whichever one was finalized first is the real one". Another alternative is to rely on "market consensus": both branches would be briefly being traded on exchanges for a very short period of time, until network effects rapidly make one branch much more valuable with the others. In this case, the "first finalized chain wins" principle would be a Schelling point for what the market would choose. It's very possible that a combination of both approaches will get used in practice.
+
+協調的管道有很多種，如社群媒體、block explorer及交易所間的溝通、線上論壇等等。決定該選哪條鏈的原則是 "哪條先出現就選哪條" 。另一個方式是讓市場機制去決定：在很短的時間裡，兩條分叉都可以在交易所中交易，直到其中一條因為價值更高而勝出。在這種情況中，"哪條先出現就選哪條" 的原則會是市場機制的 [Schelling point](https://zh.wikipedia.org/wiki/谢林点)，即參與者會因為覺得其他人也會選擇先出現的那條而傾向選擇先出現的那條，所有人在沒有溝通的情況下按照這個傾向選擇了先出現的那條鏈。所以實際中，這兩種方式並用是非常有可能的。
+
+Once there is consensus on which chain is real, users (ie. validators and light and full node operators) would be able to manually insert the winning block hash into their client software through a special option in the interface, and their nodes would then ignore all other chains. No matter which chain wins, there exists evidence that can immediately be used to destroy at least 1/3 of the validators' deposits.
+
+當該選擇哪條鏈的共識達成時，使用者（即validator、light node及full node）就可以手動地將勝出的區塊的雜湊值藉由特殊的選項寫入軟體中，之後他們的節點就會忽略其他（不包含該區塊雜湊值）的鏈。之後不管是哪條鏈被選擇，都有證據可以用來懲罰至少 1/3 的違規validator。
+
+Another kind of attack is liveness denial: instead of trying to revert blocks, a cartel of >=34% of validators could simply refuse to finalize any more blocks. In this case, blocks would never finalize. Casper uses a hybrid chain/BFT-style consensus, and so the blockchain would still grow, but it would have a much lower level of security. If no blocks are finalized for some long period of time (eg. 1 day), then there are several options:
+
+另外一種攻擊是阻斷 liveness：一個由超過 34% validator組成的集團可以拒絕將任何區塊變成不可更動的。在這種情況下，將沒有區塊能被變成不可更動。Casper採用混合（鏈 + BFT型態）的共識，因此鏈還是會持續增長，但安全性會大大降低。如果很長一段時間（例如一天）都沒有區塊被變成不可更動，則有以下幾種選項：
+
+1. The protocol can include an automatic feature to rotate the validator set. Blocks under the new validator set would finalize, but clients would get an indication that the new finalized blocks are in some sense suspect, as it's very possible that the old validator set will resume operating and finalize some other blocks. Clients could then manually override this warning once it's clear that the old validator set is not coming back online. There would be a protocol rule that under such an event all old validators that did not try to participate in the consensus process take a large penalty to their deposits.
+
+1. 可以採用一個自動化的功能來輪轉validator名單，瓦解集團的佔比。在新的validator名單中區塊可以被變為不可更動，但使用者會收到提醒告訴他們這些不可更動的區塊還是不可全信的，因為很有可能舊的一組validator會重新奪回控制權並將其他的區塊變為不可更動。使用者如果確信舊的一組validator不會再上線，就可以手動覆蓋過這些警告。會有規則規定在這種情況發生時，所有舊的validator如果沒有再參與共識過程則會受到相當大筆的罰款。
+
+2. A hard fork is used to add in new validators and delete the attackers' balances.
+
+2. 採用硬分叉的方式移除攻擊者的存款，並增加新的validator。
+
+In case (2), the fork would once again be coordinated via social consensus and possibly via market consensus (ie. the branch with the old and new validator set briefly both being traded on exchanges). In the latter case, there is a strong argument that the market would want to choose the branch where "the good guys win", as such a chain has validators that have demonstrated their goodwill (or at least, their alignment with the interest of the users) and so is a more useful chain for application developers.
+
+在第二種方法中，分叉還是一樣要由鏈外的共識來協調，且可能會由市場共識的方式（即兩條擁有不一樣validator組成的鏈短暫的並存在交易市場上）。如果是藉由市場共識的方式，有個有力的論點是--市場會傾向選擇 "好人勝出" 的鏈，這條鏈的validator展現了他們的誠意（或至少他們和使用者的利益是並存的），因此也是一條對應用開發者較有用的鏈。
+
+Note that there is a spectrum of response strategies here between social coordination and in-protocol automation, and it is generally considered desirable to push as far toward automated resolution as possible so as to minimize the risk of simultaneous 51% attacks and attacks on the social layer (and market consensus tools such as exchanges). One can imagine an implementation of (1) where nodes automatically accept a switch to a new validator set if they do not see a new block being committed for a long enough time, which would reduce the need for social coordination but at the cost of requiring those nodes that do not wish to rely on social coordination to remain constantly online. In either case, a solution can be designed where attackers take a large hit to their deposits.
+
+在選擇攻擊應對的策略時，在交際協調和機制內自動化之間其實有如一道光譜，並不是非黑即白，通常設計越可能往自動化的解法越理想，因為這可以降低當 51% 攻擊和社交層面（包含市場共識如交易所）的攻擊同時發生時的風險。可以想像一個措施，採用 1 的方式使節點在超過一定時間都沒有區塊被 commit 時自動更換validator名單，這會降低交際協調的需要但節點也因此要更頻繁地保持上線。但不管是哪種方式，攻擊者都要損失一大筆的存款。
+
+A more insidious kind of attack is a censorship attack, where >= 34% of validators refuse to finalize blocks that contain certain kinds of transactions that they do not like, but otherwise the blockchain keeps going and blocks keep getting finalized. This could range from a mild censorship attack which only censors to interfere with a few specific applications (eg. selectively censoring transactions in something like Raiden or the lightning network is a fairly easy way for a cartel to steal money) to an attack that blocks all transactions.
+
+另外一種比較不容易發覺的攻擊是審查攻擊--當超過 34% 的validator拒絕將含有某些（他們不喜歡的）特定交易的區塊變為不可更動，除此之外鏈的運作都正常。攻擊的範圍從輕微的，干擾特定應用（如過濾 Raiden 或閃電網路的交易是較簡單偷錢的方式）的攻擊到阻擋所有交易的大範圍攻擊。
+
+There are two sub-cases. The first is where the attacker has 34-67% of the stake. Here, we can program validators to refuse to finalize or build on blocks that they subjectively believe are clearly censoring transactions, which turns this kind of attack into a more standard liveness attack. The more dangerous case is where the attacker has more than 67% of the stake. Here, the attacker can freely block any transactions they wish to block and refuse to build on any blocks that do contain such transactions.
+
+其中又分成兩個類別，第一個是攻擊者掌控 34%-67% 的下注資本。我們可以將validator設計成拒絕將他們主觀認定為正在過濾交易的區塊變成不可更動或接在其後，這讓這種攻擊變為一個標準的 liveness 攻擊。比較危險的情況是當攻擊者掌控超過 67% 的下注資本，攻擊者可以任意的阻擋他們不喜歡的交易並拒絕接在包含這些交易的區塊後面。
+
+There are two lines of defense. First, because Ethereum is Turing-complete it is [naturally somewhat resistant to censorship](http://hackingdistributed.com/2016/07/05/eth-is-more-resilient-to-censorship/) as censoring transactions that have a certain effect is in some ways similar to solving the halting problem. Because there is a gas limit, it is not literally impossible, though the "easy" ways to do it do open up denial-of-service attack vulnerabilities.
+
+面對這個攻擊有兩道防線。第一，因為以太坊具有圖靈完備特性，[在本質上就具有抵抗審查的能力](http://hackingdistributed.com/2016/07/05/eth-is-more-resilient-to-censorship/)，因為審查交易的過程在某種程度上相似於解決停機問題（halting problem）。但因為區塊有 gas 限制，所以審查並不是不可能，不過用"簡單"的方式來進行審查會讓攻擊者反而有被DoS的風險。
+
+This resistance [is not perfect](https://pdaian.com/blog/on-soft-fork-security/), and there are ways to improve it. The most interesting approach is to add in-protocol features where transactions can automatically schedule future events, as it would be extremely difficult to try to foresee what the result of executing scheduled events and the events resulting from those scheduled events would be ahead of time. Validators could then use obfuscated sequences of scheduled events to deposit their ether, and dilute the attacker to below 33%.
+
+單純具有這個抵抗能力[還不夠好](https://pdaian.com/blog/on-soft-fork-security/)，還有其他方式可以加強抵抗審查的能力。最有趣的方式是增加一個機制內的功能--讓交易能自動規劃未來的事件，因為預測這些事件的執行結果或是這些事件又再產生的事件是很難的。validator可以藉由混淆事件規劃的順序來下注存款，藉此稀釋攻擊者的佔比到低於 33% 。
+
+Second, one can introduce the notion of an "active fork choice rule", where part of the process for determining whether not a given chain is valid is trying to interact with it and verifying that it is not trying to censor you. The most effective way to do this would be for nodes to repeatedly send a transaction to schedule depositing their ether and then cancel the deposit at the last moment. If nodes detect censorship, they could then follow through with the deposit, and so temporarily join the validator pool en masse, diluting the attacker to below 33%. If the validator cartel censors their attempts to deposit, then nodes running this "active fork choice rule" would not recognize the chain as valid; this would collapse the censorship attack into a liveness denial attack, at which point it can be resolved through the same means as other liveness denial attacks.
+
+第二，引進 "active fork choice rule" 的概念--當面臨鏈分叉情況，其中一個選擇鏈的考量是和鏈進行互動並藉此驗證該鏈是否有在過濾你的交易。最有效的方式是節點重複地送出一筆交易來規劃下注存款並在最後一刻取消。如果節點偵測到審查機制，就不取消並暫時一起加入成為validator之一，將攻擊者的佔比稀釋到 33% 。如果集團過濾掉他們的存款交易的話，則採用這個 "active fork choice rule" 的節點就不會選擇這條鏈。這會讓審查攻擊轉變為 liveness 攻擊，此時就可以藉由解決 liveness 攻擊的方式來處理。
