@@ -208,3 +208,40 @@ This resistance [is not perfect](https://pdaian.com/blog/on-soft-fork-security/)
 Second, one can introduce the notion of an "active fork choice rule", where part of the process for determining whether not a given chain is valid is trying to interact with it and verifying that it is not trying to censor you. The most effective way to do this would be for nodes to repeatedly send a transaction to schedule depositing their ether and then cancel the deposit at the last moment. If nodes detect censorship, they could then follow through with the deposit, and so temporarily join the validator pool en masse, diluting the attacker to below 33%. If the validator cartel censors their attempts to deposit, then nodes running this "active fork choice rule" would not recognize the chain as valid; this would collapse the censorship attack into a liveness denial attack, at which point it can be resolved through the same means as other liveness denial attacks.
 
 第二，引進 "active fork choice rule" 的概念--當面臨鏈分叉情況，其中一個選擇鏈的考量是和鏈進行互動並藉此驗證該鏈是否有在過濾你的交易。最有效的方式是節點重複地送出一筆交易來規劃下注存款並在最後一刻取消。如果節點偵測到審查機制，就不取消並暫時一起加入成為validator之一，將攻擊者的佔比稀釋到 33% 。如果集團過濾掉他們的存款交易的話，則採用這個 "active fork choice rule" 的節點就不會選擇這條鏈。這會讓審查攻擊轉變為 liveness 攻擊，此時就可以藉由解決 liveness 攻擊的方式來處理。
+
+###That sounds like a lot of reliance on out-of-band social coordination; is that not dangerous?
+
+###聽起來似乎很仰賴鏈外的社交協調，這樣難道不危險嗎？
+
+Attacks against Casper are extremely expensive; as we will see below, attacks against Casper cost as much, if not more, than the cost of buying enough mining power in a proof of work chain to permanently 51% attack it over and over again to the point of uselessness. Hence, the recovery techniques described above will only be used in very extreme circumstances; in fact, advocates of proof of work also generally express willingness to use social coordination in similar circumstances by, for example, [changing the proof of work algorithm](https://news.bitcoin.com/bitcoin-developers-changing-proof-work-algorithm/). Hence, it is not even clear that the need for social coordination in proof of stake is larger than it is in proof of work.
+
+攻擊 Casper 代價非常高。以下我們將會講到，攻擊 Casper 的代價至少和買礦機持續不斷的對PoW鏈發動 51% 攻擊直到無效果為止的代價一樣。因此，上面段落所描述的復原方法只有在非常極端的情形才會用到。事實上，PoW的提倡者亦表達在某些相似情況採用社交協調的意願，例如[改變PoW的算法](https://news.bitcoin.com/bitcoin-developers-changing-proof-work-algorithm/)。所以PoS需要的社交協調是否會比PoW所需要的社交協調還多還無明確的結果。
+
+In reality, we expect the amount of social coordination required to be near-zero, as attackers will realize that it is not in their benefit to burn such large amounts of money to simply take a blockchain offline for one or two days.
+
+在現實中，我們預期用到社交協調的方式的次數會接近零次，因為攻擊者會瞭解到單純為了讓區塊鏈停擺一兩天要花費這麼大量的錢是不符合利益的。
+
+###Doesn't MC => MR mean that all consensus algorithms with a given security level are equally efficient (or in other words, equally wasteful)?
+
+###邊際成本趨近邊際收益不就表示所有具有一定高度安全層級的共識演算法都一樣有效（或一樣地浪費）？
+
+This is an argument that many have raised, perhaps best explained by [Paul Sztorc in this article](http://www.truthcoin.info/blog/pow-cheapest/). Essentially, if you create a way for people to earn $100, then people will be willing to spend anywhere up to $99.9 (including the cost of their own labor) in order to get it; marginal cost approaches marginal revenue. Hence, the theory goes, any algorithm with a given block reward will be equally "wasteful" in terms of the quantity of socially unproductive activity that is carried out in order to try to get the reward.
+
+許多人都提出過這個論點，而解釋最清楚的就屬[Paul Sztorc 的這篇文章(http://www.truthcoin.info/blog/pow-cheapest/)。其中的重點是，如果你創造一個有 100 元獎賞的機會，則大家為了得到它會願意花費最高到 99.9 元（包含自己付出的勞力），此時邊際成本趨近邊際效益。因此，這個理論說--任何提供區塊獎賞的演算法，其中為了獲取獎賞而進行對社會無效益的活動的數量都是一樣的，即它們都一樣地浪費資源。
+
+There are three flaws with this:
+
+1. It's not enough to simply say that marginal cost approaches marginal revenue; one must also posit a plausible mechanism by which someone can actually expend that cost. For example, if tomorrow I announce that every day from then on I will give $100 to a randomly selected one of a given list of ten people (using my laptop's /dev/urandom as randomness), then there is simply no way for anyone to send $99 to try to get at that randomness. Either they are not in the list of ten, in which case they have no chance no matter what they do, or they are in the list of ten, in which case they don't have any reasonable way to manipulate my randomness so they're stuck with getting the expected-value $10 per day.
+
+這個理論有三個盲點：
+
+1. 單純地說邊際成本趨近邊際效益是不夠的，必須還要假設一個有人可以真的花費那些成本的機制存在。例如，假設我明天宣布之後每一天我都會隨機地從一個十人名單中挑出一個人並給予他 100 元，然而沒有人有辦法花費 99 元來取得其中的隨機值。他們要不是不在名單中不管怎樣都拿不到獎賞，要不就是在名單中但沒有任何有效的方法取得我的隨機值，只有期望值為平均每天 10 元的獎賞。
+
+2. MC => MR does NOT imply total cost approaches total revenue. For example, suppose that there is an algorithm which pseudorandomly selects 1000 validators out of some very large set (each validator getting a reward of $1), you have 10% of the stake so on average you get 100, and at a cost of $1 you can force the randomness to reset (and you can repeat this an unlimited number of times). Due to the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem), the standard deviation of your reward is $10, and based on [other known results in math](http://math.stackexchange.com/questions/89030/expectation-of-the-maximum-of-gaussian-random-variables) the expected maximum of N random samples is slightly under M + S * sqrt(2 * log(N)) where M is the mean and S is the standard deviation. Hence the reward for making additional trials (ie. increasing N) drops off sharply, eg. with 0 re-trials your expected reward is $100, with one re-trial it's $105.5, with two it's $108.5, with three it's $110.3, with four it's $111.6, with five it's $112.6 and with six it's $113.5. Hence, after five retrials it stops being worth it. As a result, an economically motivated attacker with ten percent of stake will inefficiently spend $5 to get an additional revenue of $13, though the total revenue is $113. If the exploitable mechanisms only expose small opportunities, the economic loss will be small; it is decidedly NOT the case that a single drop of exploitability brings the entire flood of PoW-level economic waste rushing back in. This point will also be very relevant in our below discussion on capital lockup costs.
+
+2. 邊際成本趨近邊際效益不表示總成本趨近總收益。例如，假設存在一個演算法利用偽隨機（pseudo-randomly）的方式從一大群validator中選擇 1000 位validator(一個validator獲得 1 元獎賞)，你資本佔總資本的 10% 所以你平均會獲得 100 元，且你可以用花費 1 元來（無限次地）重設隨機值。因為 [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem)，你可獲得的獎賞的標準差是 10 元，又因為[其他已知的數學結論](http://math.stackexchange.com/questions/89030/expectation-of-the-maximum-of-gaussian-random-variables)， N 個隨機抽樣中最大的期望值約略小於 ` M + S * sqrt(2 * log(N))` ，其中 M 是中間值且 S 是標準差。因此增加重設隨機值的次數（即增加 N ）所獲得的獎賞會快速地下降，例如如果完全不嘗試重設隨機值你的期望獲利是 100 元，如果嘗試一次是 105.5 元，兩次是 108.5 元，三次是 110.3 元，四次是 111.6 元，五次是 112.6 元，六次是 113.5元（只增加 0.9 元的獲利）。因此嘗試超過五次之後就不值得再繼續嘗試。所以一個由經濟因素所驅動的攻擊者，如果他總資本佔 10% ，則他會花費 5 元嘗試重設隨機值來獲得額外的 13 元的獲利，即便這麼做很沒效率。如果一個機制可被有心人士利用，但被利用的機率不高，則損失不會多，但這不適用於出現一個漏洞而導致全部 PoW 資源投入造成浪費的情況。而這點也和下一章節要介紹的 capital lockup costs 非常相關。
+
+3. Proof of stake can be secured with much lower total rewards than proof of work.
+
+3. PoS 要變得安全穩固所需要的獎賞比起 PoW 的獎賞少的非常多。
+
