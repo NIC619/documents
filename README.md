@@ -17,4 +17,5 @@ ___
         - protocol armor
         - social authentication
         - stake grinding
+        - capital lockup
     * 任何建議或任何指正都歡迎 :-)

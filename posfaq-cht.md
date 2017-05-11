@@ -107,11 +107,11 @@ Casper遵循第二種方法，不過是可以透過增加鏈上的機制，讓va
 
 ###什麼是弱主觀性（weak subjectivity）？
 
-很重要的一點是，利用存款（deposit，也就是validator下注的資本）來確保"風險成本不為零"的機制確實改變了安全模型（security model）。假設 (I)存款會被鎖住一個月，時間到之後可以提走， (II)有個 51% 攻擊嘗試反轉（revert）長達 10 天的交易量，則這些攻擊者產生的區塊會被寫入鏈裡當作證據且validator會被懲罰。然而，假設攻擊變成長達 40 天，則雖然這些攻擊產生的區塊可以再被寫入鏈裡，但validator早已能把錢提走而不會受到懲罰。為了要解決這個問題，我們需要一個"反轉限制（revert limit）"的規則，也就是當反轉所影響的區塊總時間長度超過存款鎖住的期限，則節點可以拒絕接受這些區塊（在上例，即拒絕影響超過一個月的反轉區外）。這表示節點現在多了兩項要求：
+很重要的一點是，利用存款（deposit，也就是validator下注的資本）來確保"風險成本不為零"的機制確實改變了PoS的安全模型（security model）。假設 (I)存款會被鎖住一個月，時間到之後可以提走， (II)有個 51% 攻擊嘗試反轉（revert）長達 10 天的交易量，則這些攻擊者產生的區塊會被寫入鏈裡當作證據且validator會被懲罰。然而，假設攻擊變成長達 40 天，則雖然這些攻擊產生的區塊可以再被寫入鏈裡，但validator早已能把錢提走而不會受到懲罰。為了要解決這個問題，我們需要一個"反轉限制（revert limit）"的規則，也就是當反轉所影響的區塊總時間長度超過存款鎖住的期限，則節點可以拒絕接受這些區塊（在上例，即拒絕影響超過一個月的反轉區外）。這表示節點現在多了兩項要求：
 
 1. 當節點第一次連上並要同步鏈的資料的時候，他們必須藉由鏈外的方式來驗證最新的狀態，即透過朋友節點們或各個 Block Explorer 等等的方式。如果他們得到的都是同一條一樣的鏈，則可以確定這條是正確的。注意，只有在出現鏈分叉長度超過反轉限制時（在上例，即得到兩條在過去超過一個月的區塊皆不相同的鏈）才需要這種採用這種鏈外的交際驗證（social authentication）。
 
-2. 節點每隔一段"反轉限制"的時間就必須要上線同步。如果沒定時同步，則需要再透過一次鏈外的交際驗證。
+2. 節點每隔一段"反轉限制"的時間就必須要上線同步。如果沒定時同步，則需要再透過一次鏈外的交際驗證來保證狀態的可信度。
 
 這種鏈外的交際驗證事實上範圍有限。如果攻擊者要利用這個管道來攻擊，他們必須要說服社群裡一大部分的人，讓他們相信攻擊者的鏈才是有效的；或是改為說服新加入社群的人--新加入的人可能會在下載軟體時一並收到最近一次的檢查點（checkpoint，即反轉限制的臨界點），但如果攻擊者能竄改這個檢查點的紀錄，則他們要能直接竄改整個軟體也不再是件難事，而且沒有單純的密碼經濟學的驗證方式能解決這個問題。當一個節點連接上了，只要他夠頻繁地上線，他就能以單純密碼經濟學上安全的模型來確保連接上正確的鏈，而不需要額外的鏈外交際驗證。
 
@@ -175,11 +175,11 @@ Another kind of attack is liveness denial: instead of trying to revert blocks, a
 
 1. The protocol can include an automatic feature to rotate the validator set. Blocks under the new validator set would finalize, but clients would get an indication that the new finalized blocks are in some sense suspect, as it's very possible that the old validator set will resume operating and finalize some other blocks. Clients could then manually override this warning once it's clear that the old validator set is not coming back online. There would be a protocol rule that under such an event all old validators that did not try to participate in the consensus process take a large penalty to their deposits.
 
-1. 可以採用一個自動化的功能來輪轉validator名單，瓦解集團的佔比。在新的validator名單中區塊可以被變為不可更動，但使用者會收到提醒告訴他們這些不可更動的區塊還是不可全信的，因為很有可能舊的一組validator會重新奪回控制權並將其他的區塊變為不可更動。使用者如果確信舊的一組validator不會再上線，就可以手動覆蓋過這些警告。會有規則規定在這種情況發生時，所有舊的validator如果沒有再參與共識過程則會受到相當大筆的罰款。
+可以採用一個自動化的功能來輪轉validator名單，瓦解集團的佔比。在新的validator名單中區塊可以被變為不可更動，但使用者會收到提醒告訴他們這些不可更動的區塊還是不可全信的，因為很有可能舊的一組validator會重新奪回控制權並將其他的區塊變為不可更動。使用者如果確信舊的一組validator不會再上線，就可以手動覆蓋過這些警告。會有規則規定在這種情況發生時，所有舊的validator如果沒有再參與共識過程則會受到相當大筆的罰款。
 
 2. A hard fork is used to add in new validators and delete the attackers' balances.
 
-2. 採用硬分叉的方式移除攻擊者的存款，並增加新的validator。
+採用硬分叉的方式移除攻擊者的存款，並增加新的validator。
 
 In case (2), the fork would once again be coordinated via social consensus and possibly via market consensus (ie. the branch with the old and new validator set briefly both being traded on exchanges). In the latter case, there is a strong argument that the market would want to choose the branch where "the good guys win", as such a chain has validators that have demonstrated their goodwill (or at least, their alignment with the interest of the users) and so is a more useful chain for application developers.
 
@@ -235,13 +235,57 @@ There are three flaws with this:
 
 這個理論有三個盲點：
 
-1. 單純地說邊際成本趨近邊際效益是不夠的，必須還要假設一個有人可以真的花費那些成本的機制存在。例如，假設我明天宣布之後每一天我都會隨機地從一個十人名單中挑出一個人並給予他 100 元，然而沒有人有辦法花費 99 元來取得其中的隨機值。他們要不是不在名單中不管怎樣都拿不到獎賞，要不就是在名單中但沒有任何有效的方法取得我的隨機值，只有期望值為平均每天 10 元的獎賞。
+單純地說邊際成本趨近邊際效益是不夠的，必須還要假設一個有人可以真的花費那些成本的機制存在。例如，假設我明天宣布之後每一天我都會隨機地從一個十人名單中挑出一個人並給予他 100 元，然而沒有人有辦法花費 99 元來取得其中的隨機值。他們要不是不在名單中不管怎樣都拿不到獎賞，要不就是在名單中但沒有任何有效的方法取得我的隨機值，只有期望值為平均每天 10 元的獎賞。
 
 2. MC => MR does NOT imply total cost approaches total revenue. For example, suppose that there is an algorithm which pseudorandomly selects 1000 validators out of some very large set (each validator getting a reward of $1), you have 10% of the stake so on average you get 100, and at a cost of $1 you can force the randomness to reset (and you can repeat this an unlimited number of times). Due to the [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem), the standard deviation of your reward is $10, and based on [other known results in math](http://math.stackexchange.com/questions/89030/expectation-of-the-maximum-of-gaussian-random-variables) the expected maximum of N random samples is slightly under M + S * sqrt(2 * log(N)) where M is the mean and S is the standard deviation. Hence the reward for making additional trials (ie. increasing N) drops off sharply, eg. with 0 re-trials your expected reward is $100, with one re-trial it's $105.5, with two it's $108.5, with three it's $110.3, with four it's $111.6, with five it's $112.6 and with six it's $113.5. Hence, after five retrials it stops being worth it. As a result, an economically motivated attacker with ten percent of stake will inefficiently spend $5 to get an additional revenue of $13, though the total revenue is $113. If the exploitable mechanisms only expose small opportunities, the economic loss will be small; it is decidedly NOT the case that a single drop of exploitability brings the entire flood of PoW-level economic waste rushing back in. This point will also be very relevant in our below discussion on capital lockup costs.
 
-2. 邊際成本趨近邊際效益不表示總成本趨近總收益。例如，假設存在一個演算法利用偽隨機（pseudo-randomly）的方式從一大群validator中選擇 1000 位validator(一個validator獲得 1 元獎賞)，你資本佔總資本的 10% 所以你平均會獲得 100 元，且你可以用花費 1 元來（無限次地）重設隨機值。因為 [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem)，你可獲得的獎賞的標準差是 10 元，又因為[其他已知的數學結論](http://math.stackexchange.com/questions/89030/expectation-of-the-maximum-of-gaussian-random-variables)， N 個隨機抽樣中最大的期望值約略小於 ` M + S * sqrt(2 * log(N))` ，其中 M 是中間值且 S 是標準差。因此增加重設隨機值的次數（即增加 N ）所獲得的獎賞會快速地下降，例如如果完全不嘗試重設隨機值你的期望獲利是 100 元，如果嘗試一次是 105.5 元，兩次是 108.5 元，三次是 110.3 元，四次是 111.6 元，五次是 112.6 元，六次是 113.5元（只增加 0.9 元的獲利）。因此嘗試超過五次之後就不值得再繼續嘗試。所以一個由經濟因素所驅動的攻擊者，如果他總資本佔 10% ，則他會花費 5 元嘗試重設隨機值來獲得額外的 13 元的獲利，即便這麼做很沒效率。如果一個機制可被有心人士利用，但被利用的機率不高，則損失不會多，但這不適用於出現一個漏洞而導致全部 PoW 資源投入造成浪費的情況。而這點也和下一章節要介紹的 capital lockup costs 非常相關。
+邊際成本趨近邊際效益不表示總成本趨近總收益。例如，假設存在一個演算法利用偽隨機（pseudo-randomly）的方式從一大群validator中選擇 1000 位validator(一個validator獲得 1 元獎賞)，你資本佔總資本的 10% 所以你平均會獲得 100 元，且你可以用花費 1 元來（無限次地）重設隨機值。因為 [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem)，你可獲得的獎賞的標準差是 10 元，又因為[其他已知的數學結論](http://math.stackexchange.com/questions/89030/expectation-of-the-maximum-of-gaussian-random-variables)， N 個隨機抽樣中最大的期望值約略小於 ` M + S * sqrt(2 * log(N))` ，其中 M 是中間值且 S 是標準差。因此增加重設隨機值的次數（即增加 N ）所獲得的獎賞會快速地下降，例如如果完全不嘗試重設隨機值你的期望獲利是 100 元，如果嘗試一次是 105.5 元，兩次是 108.5 元，三次是 110.3 元，四次是 111.6 元，五次是 112.6 元，六次是 113.5元（只增加 0.9 元的獲利）。因此嘗試超過五次之後就不值得再繼續嘗試。所以一個由經濟因素所驅動的攻擊者，如果他總資本佔 10% ，則他會花費 5 元嘗試重設隨機值來獲得額外的 13 元的獲利，即便這麼做很沒效率。如果一個機制可被有心人士利用，但被利用的機率不高，則損失不會多，但這不適用於出現一個漏洞而導致全部 PoW 資源投入造成浪費的情況。而這點也和下一章節要介紹的 capital lockup costs 非常相關。
 
 3. Proof of stake can be secured with much lower total rewards than proof of work.
 
-3. PoS 要變得安全穩固所需要的獎賞比起 PoW 的獎賞少的非常多。
+PoS 要變得安全穩固所需要的獎賞比起 PoW 的獎賞少的非常多。
+
+###What about capital lockup costs?
+
+Locking up X ether in a deposit is not free; it entails a sacrifice of optionality for the ether holder. Right now, if I have 1000 ether, I can do whatever I want with it; if I lock it up in a deposit, then it's stuck there for months, and I do not have, for example, the insurance utility of the money being there to pay for sudden unexpected expenses. I also lose some freedom to change my token allocations away from ether within that timeframe; I could simulate selling ether by shorting an amount equivalent to the deposit on an exchange, but this itself carries costs including exchange fees and paying interest. Some might argue: isn't this capital lockup inefficiency really just a highly indirect way of achieving the exact same level of economic inefficiency as exists in proof of work? The answer is no, for both reasons (2) and (3) above.
+
+將 X 的 ether 鎖進存庫是有代價的，例如犧牲選擇其他選項的機會。如果我有 1000 ether ，我想怎麼使用就怎麼使用，但如果我將它鎖在存庫裡數個月，而且沒有保險來支付可能的意外支出的時候該怎麼辦。在這段時間我同時也失去從 ether 轉移成其他代幣的自由。我可以透過賣空相等數量 ether 的方式來模擬賣掉我的 ether，但其中隱含了交易手費續和利息。有些人可能會認為： captital lockup 造成的經濟上的不便和 PoW 造成的經濟層面上無效率的程度不是一樣嗎？答案是否定的，如同上一章節的 理由(2) 和 理由(3)。
+
+Let us start with (3) first. Consider a model where proof of stake deposits are infinite-term, ASICs last forever, ASIC technology is fixed (ie. no Moore's law) and electricity costs are zero. Let's say the equilibrium interest rate is 5% per annum. In a proof of work blockchain, I can take $1000, convert it into a miner, and the miner will pay me $50 in rewards per year forever. In a proof of stake blockchain, I would buy $1000 of coins, deposit them (ie. losing them forever), and get $50 in rewards per year forever. So far, the situation looks completely symmetrical (technically, even here, in the proof of stake case my destruction of coins isn't fully socially destructive as it makes others' coins worth more, but we can leave that aside for the moment). The cost of a "Maginot-line" 51% attack (ie. buying up more hardware than the rest of the network) increases by $1000 in both cases.
+
+我們先從 理由(3) 開始講起。考慮一種模型：PoS存款是無限期的、ASICs可以永久持續運作、ASIC技術固定（即不適用摩爾定律）而且電力花費是零，並假設穩定的利率是每年 5%。在 PoW 鏈裡，我花 1000 元買了礦機，礦機每年給我 50 元的利潤直到永遠。在 PoS鏈中，我存 1000 元（因為存款是無限期的所以這筆錢當作花掉）並獲得每年 50 元的利潤直到永遠。到目前為止，兩種情況看起來是等價的（雖然技術上來說，在PoS中當我的存款因違規被銷毀，會間接造成其他人的存款價值升高，但這邊我們先不討論）。任何人發動 "Maginot-line" 51% 攻擊（即硬體買得比網路其他人加起來還多）的成本在兩種情況都會再加上 1000 元。
+
+Now, let's perform the following changes to our model in turn:
+
+1. Moore's law exists, ASICs depreciate by 50% every 2.772 years (that's a continuously-compounded 25% per annum; picked to make the numbers simpler). If I want to retain the same "pay once, get money forever" behavior, I can do so: I would put $1000 into a fund, where $167 would go into an ASIC and the remaining $833 would go into investments at 5% interest; the $41.67 dividends per year would be just enough to keep renewing the ASIC hardware (assuming technological development is fully continuous, once again to make the math simpler). Rewards would go down to $8.33 per year; hence, 83.3% of miners will drop out until the system comes back into equilibrium with me earning $50 per year, and so the Maginot-line cost of an attack on PoW given the same rewards drops by a factor of 6.
+
+現在假設模型依序做以下的變更：
+
+摩爾定律適用，ASICs 每 2.772 年貶值一次（方便計算，大約是持續每年降低 25%）。如果我要繼續保持 "付一次，永遠都能持續拿回錢" 的模式，我可以：將 1000 變成一筆資金，其中167會花費在 ASICs 上，833 元花在 5% 報酬率的投資。每年 41.67 元的利潤剛好足夠花在更新 ASICs設備上（方便計算，假設技術發展是穩定連續的）。這時利潤會降低至每年 8.33 元，因此 83.3% 的礦工會放棄直到系統回到每年有 50 元利潤的穩定狀態，所以在利潤這麼低的 PoW鏈發動 Maginot-line 51% 攻擊的成本會大幅地縮小（至少六倍）。
+
+2. Electricity plus maintenance makes up 1/3 of mining costs. We estimate the 1/3 from recent mining statistics: one of Bitfury's new data centers consumes [0.06 joules per gigahash](http://www.coindesk.com/bitfury-details-100-million-georgia-data-center/), or 60 J/TH or 0.000017 kWh/TH, and if we assume the entire Bitcoin network has similar efficiencies we get 27.9 kWh per second given [1.67 million TH/s total Bitcoin hashpower](http://bitcoinwatch.com/). Electricity in China costs [$0.11 per kWh](http://www.statista.com/statistics/477995/global-prices-of-electricity-by-select-country/), so that's about $3 per second, or $260,000 per day. Bitcoin block rewards plus fees are $600 per BTC * 13 BTC per block * 144 blocks per day = $1.12m per day. Thus electricity itself would make up 23% of costs, and we can back-of-the-envelope estimate maintenance at 10% to give a clean 1/3 ongoing costs, 2/3 fixed costs split. This means that out of your $1000 fund, only $111 would go into the ASIC, $55 would go into paying ongoing costs, and $833 would go into hardware investments; hence the Maginot-line cost of attack is 9x lower than in our original setting.
+
+電力加上硬體維護組成大約 1/3 的挖礦成本。1/3 是從最近的數據估計而來的：Bitfury 的新資料中心 [每 gigahash 電力消耗為 0.06 焦耳 ](http://www.coindesk.com/bitfury-details-100-million-georgia-data-center/)，或 每 terahash 60 焦耳、每terahash 0.000017千瓦小時。如果假設比特幣網路的平均消耗皆如此的話，以[比特幣總共算立約 1.67 million TH/s](http://bitcoinwatch.com/) 來算每秒約消耗 27.9 千瓦小時。中國電力成本為[每千瓦小時 0.11 元 ](http://www.statista.com/statistics/477995/global-prices-of-electricity-by-select-country/)，約為每秒 3 元或每天 260000 元。比特幣區塊獎賞加上手續費為 600 * 13 * 144 = 1.12m，一天 112 萬元。因此電力組成約 23% 的成本，而且我們可以用簡單的計算預估硬體維護成本為 10% 。這表示你的 1000 元資金裡，111 元要拿來付 ASICs，55 元要拿來付持續性的花費如電力和維護等，而 833 元會花在投資上，因此現在要發動 Maginot-line 51% 攻擊的成本已經是一開始的九倍小了。
+
+3. Deposits are temporary, not permanent. Sure, if I voluntarily keep staking forever, then this changes nothing. However, I regain some of the optionality that I had before; I could quit within a medium timeframe (say, 4 months) at any time. This means that I would be willing to put more than $1000 of ether in for the $50 per year gain; perhaps in equilibrium it would be something like $3000. Hence, the cost of the Maginot line attack on PoS increases by a factor of three, and so on net PoS gives 27x more security than PoW for the same cost.
+
+事實上存款是短暫而非永遠（被視為拿不回來）的。當然你自願永遠存著的話也行。然而不同的是，我現在至少多了一些空間選項，我可以在任何時間內結束並等待一段時間（如四個月）。這表示我願意花更多的錢來獲得更多的利潤（因為投資不會再被當作拿不回來的錢），或許是 3000 元。因此，在 PoS 鏈上發動 Maginot line 51% 攻擊的成本增加為原本的三倍，和 PoW 比起來是 27 倍的安全性。
+
+The above included a large amount of simplified modeling, however it serves to show how multiple factors stack up heavily in favor of PoS in such a way that PoS gets more bang for its buck in terms of security. The meta-argument for why this [perhaps suspiciously multifactorial argument](http://lesswrong.com/lw/kpj/multiple_factor_explanations_should_not_appear/) leans so heavily in favor of PoS is simple: in PoW, we are working directly with the laws of physics. In PoS, we are able to design the protocol in such a way that it has the precise properties that we want - in short, we can optimize the laws of physics in our favor. The "hidden trapdoor" that gives us (3) is the change in the security model, specifically the introduction of weak subjectivity.
+
+以上包含了很多簡化過的計算，但它的目的是為了指出經過許多因素考量，都顯示出 PoS 擁有更高的安全性。而這個[看似可疑的多重因素論點](http://lesswrong.com/lw/kpj/multiple_factor_explanations_should_not_appear/)為何這麼強烈凸顯 PoS 的優點的主要理由是：在 PoW 中，我們操作利用物理特性；而在 PoS 中，我們可以設計出一套準確具有我們想要的特性的機制 - 簡而言之，我們可以用我們的方式來優化 "物理特性"。這個讓我們能得到 理由(3) 的 "隱藏的機關" 即是在安全模型上的改變，特別是弱主觀性（weak subjectivity）這個性質的出現。
+
+Now, we can talk about the marginal/total distinction. In the case of capital lockup costs, this is very important. For example, consider a case where you have $100,000 of ether. You probably intend to hold a large portion of it for a long time; hence, locking up even $50,000 of the ether should be nearly free. Locking up $80,000 would be slightly more inconvenient, but $20,000 of breathing room still gives you a large space to maneuver. Locking up $90,000 is more problematic, $99,000 is very problematic, and locking up all $100,000 is absurd, as it means you would not even have a single bit of ether left to pay basic transaction fees. Hence, your marginal costs increase quickly. We can show the difference between this state of affairs and the state of affairs in proof of work as follows:
+
+接者我們可以討論 邊際成本/效益 和 總成本/效益 的不同。在 capital lockup costs 的情況中這非常重要。例如假設一個情況，你有價值 100000 的 ether，你會傾向長久持有絕大部分的錢。因此鎖住其中的 50000 應該不會有什麼問題，鎖住 80000 可能會有一點不方便雖然 20000 還是有夠充足可以利用，鎖住 90000 就有點問題了，99000 問題就大了，全鎖住那你可能是瘋了，因為你會連交易費都出不起。因此你的邊際成本快速的增加，我們可以用以下方式比較 PoS 情況和 PoW 情況的不同：
+
+![](https://blog.ethereum.org/wp-content/uploads/2014/07/liquidity.png)
+
+Hence, the total cost of proof of stake is potentially much lower than the marginal cost of depositing 1 more ETH into the system multiplied by the amount of ether currently deposited.
+
+可以看到，在 PoS 現有的總存款中再存入 1 ether 的總成本是遠低於邊際成本的。
+
+Note that this component of the argument unfortunately does not fully translate into reduction of the "safe level of issuance". It does help us because it shows that we can get substantial proof of stake participation even if we keep issuance very low; however, it also means that a large portion of the gains will simply be borne by validators as economic surplus.
+
+注意，這部分的論點可惜地並沒有完全解釋到 "safe level of issuance"。但其顯示出即使我們將貨幣發行量控制地很低，我們還是能獲得可觀的 PoS 參與數，雖然這也代表很大一部分的發行量會被用來當作獎賞驗證者。
 
