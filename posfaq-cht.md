@@ -289,3 +289,26 @@ Note that this component of the argument unfortunately does not fully translate 
 
 注意，這部分的論點可惜地並沒有完全解釋到 "safe level of issuance"。但其顯示出即使我們將貨幣發行量控制地很低，我們還是能獲得可觀的 PoS 參與數，雖然這也代表很大一部分的發行量會被用來當作獎賞驗證者。
 
+###Will exchanges in proof of stake pose a similar centralization risk to pools in proof of work?
+
+###在 PoS 的礦池會有類似 PoW 礦池中心化的風險嗎？
+
+From a centralization perspective, in both [Bitcoin](https://blockchain.info/pools) and [Ethereum](https://etherscan.io/stats/miner?range=7&blocktype=blocks) it's the case that roughly three pools are needed to coordinate on a 51% attack (4 in Bitcoin, 3 in Ethereum at the time of this writing). In PoS, if we assume 30% participation including all exchanges, then [three exchanges](https://etherscan.io/accounts) would be enough to make a 51% attack; if participation goes up to 40% then the required number goes up to eight. However, exchanges will not be able to participate with all of their ether; the reason is that they need to accomodate withdrawals.
+
+從 [Bitcoin](https://blockchain.info/pools) 和 [Ethereum](https://etherscan.io/stats/miner?range=7&blocktype=blocks) 來看，大約需要三個礦池聯合才能發動 51% 攻擊（ 在寫這篇文章的時候，Bitcoin 約需四個、Ethereum 約需三個）。假設在 PoS 包含所有礦池、交易所共有 30% 的參與率，則 [三個礦池、交易所](https://etherscan.io/accounts) 就足夠發動 51% 攻擊；如果參與率提高到 40% 則需要八個。另外礦池、交易所也不能將所有資本投入攻擊中，因為他們需要保留部分金錢來應付客戶。
+
+Additionally, pooling in PoS is discouraged because it has a much higher trust requirement - a proof of stake pool can pretend to be hacked, destroy its participants' deposits and claim a reward for it. On the other hand, the ability to earn interest on one's coins without oneself running a node, even if trust is required, is something that many may find attractive; all in all, the centralization balance is an empirical question for which the answer is unclear until the system is actually running for a substantial period of time. With sharding, we expect pooling incentives to reduce further, as (i) there is even less concern about variance, and (ii) in a sharded model, transaction verification load is proportional to the amount of capital that one puts in, and so there are no direct infrastructure savings from pooling.
+
+再加上組成 PoS 的礦池的動機是較低的，因為會需要較高的信任成本 - 礦池不偷錢，但是可以假裝被駭導致資本全被沒收，且同時扮成檢舉者領檢舉獎金。不過另一方面，不需要自己跑一個就能用自己的錢賺利潤仍是很有吸引力的，即便需要信任對方。總之，中心化和去中心化間的平衡是需要經驗才能找到答案的，也只有等到系統真的上線一段時間了才有辦法得到答案。但配上 sharding 之後，我們預計會更近一步降低中心化，因為 (i) 需要考量的變化更少且 (ii) 在 sharding 模型中，驗證交易的負擔和所投入的資本成正比，所以並不會因為組成礦池而有任何直接的成本支出的節省。
+
+A final point is that centralization is less harmful in proof of stake than in proof of work, as there are much cheaper ways to recover from successful 51% attacks; one does not need to switch to a new mining algorithm.
+
+最後一點是，中心化在 PoS 中比其在 PoW 中的負面影響更小，因為從 51% 攻擊中復原容易且便宜多了，也不必要換到新的挖礦演算法。
+
+###Can proof of stake be used in private/consortium chains?
+
+###PoS 能被用在私有鏈或聯盟鏈嗎？
+
+Generally, yes; any proof of stake algorithm can be used as a consensus algorithm in private/consortium chain settings. The only change is that the way the validator set is selected would be different: it would start off as a set of trusted users that everyone agrees on, and then it would be up to the validator set to vote on adding in new validators.
+
+一般來說是可以的。任何 PoS 演算法都可以被私有鏈或聯盟鏈用做一個共識演算法。唯一不同是成為驗證者的方式：一開始會由一群大家同意且信任的使用者成為驗證者，接著再由這群驗證者透過投票去加入新的驗證者。
