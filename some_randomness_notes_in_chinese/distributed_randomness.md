@@ -16,11 +16,11 @@ ___
 * 非同步環境
 
 ## RandHound
-
+＿＿＿
 RandHound藉由將server分成更小的組別的方式來改善RandShare無法scale的問題，將複雜度從 O(n^3) 將為O(n*c^2)，其中c為組別中的成員數量（為一常數），藉由鴿籠原理來保證至少有一組回傳的結果是安全可信的（每組平均誠實的server數(a)是誠實server總數(h)除以組數(m)，藉由設定復原secret的threshold值來確保至少m組中有一組是可信的）。
 
-### thread model
-
+### RandHound - thread model
+＿＿＿
 * client和server總數為 3f+1 ，其中最多有 f 個拜占庭節點（如同 BFT 的設定）
 * 攻擊者的攻擊形式為影響隨機值、DoS攻擊，client 亦可為惡意
 * 假設client只能使用RandHound一次，server會為每個請求紀錄一個相關的組態檔（a seesion configuration file）來避免重複請求
@@ -37,4 +37,8 @@ client會將請求、收到和送出的每個訊息都記錄下來（一份trans
 
 ## RandHerd
 
-改變client、server溝通方式，將複雜度從 O(n) 再降到 O(logn)。
+改變client、server溝通方式，將複雜度從 O(n) 再降到 O(logn)。將server分成小組，每輪會有一個小組的領導擔任該輪的領導，由它負責（即 RandHound 裡 client 的角色）。每輪由產生的統一 Schnorr 簽章當作隨機值。
+
+會有一個 configuration file 紀錄所有 server 的相關資訊、公鑰及這些公鑰共同組成的統一公鑰。一開始會需要 (1)隨機選擇一個領導，(2)執行一次 RandHound 來決定分組，(3)之後如果有領導缺席或被要求更換，則按照順序來決定小組領導或總領導的順位，(4)小組計算出小組公鑰再告知總領導來計算統一公鑰，(5)總領導將總公鑰及所屬小組公鑰送給每個 server 做確認，(5)所有 server 確認完後簽名送回，只有收到超過門檻數量的簽名時，setup 才算完成。
+
+* 領導選擇的方式有可能是潛在的攻擊目標

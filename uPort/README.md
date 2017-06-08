@@ -7,3 +7,5 @@
     * Black arrows with no description stand for create contract call. Black lines with description stands for contract call.
     * Factory contract creates Proxy, Controller and Recovery contracts respectively.
     * Blue arrows stand for link by storage variable. Arrow origin is the contract which stores the variable with the name shown besides arrow. Arrow destination is the value of the variable which is a contract or an EOA.
+
+2. demo2: similar to demo1 but replace Recovery contract with a single recovery key(which is an EOA).
