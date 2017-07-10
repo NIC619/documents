@@ -11,13 +11,16 @@ sha3(
 
 ## Prepare Rules
 
-1. a prepare needs to *link to/based upon* a previous **justified** prepare(by justified it means that more than 2/3 of validators submit the same prepare, see [PREPARE_REQ in Minimal Slashing Condition](https://medium.com/@VitalikButerin/minimal-slashing-conditions-20f0b500fc6c)).
+1. a prepare needs to *link to/based upon* a previous **justified** prepare(by justified it means that more than 2/3 of validators submit the same prepare, see **PREPARE_REQ** in [Minimal Slashing Condition](https://medium.com/@VitalikButerin/minimal-slashing-conditions-20f0b500fc6c)).
 2. in each prepare, message include
     * current epoch
     * ancestry hash of current epoch
     * source epoch
     * ancestry hash of source epoch
-3. the hash been justified is the ancestry hash of each epoch while the hash been prepared is a little different, it's the hash of the above four values(in #2), looks like this
+3. the hash been justified and the hash been prepared is a little different(by been prepared it means where the deposit size staked on is counted)
+    * the hash been justified is the ancestry hash of each epoch
+    * the hash been prepared is the hash of the above four values(in #2), looks like this
+ 
 ```
 sha3(
     concat(
