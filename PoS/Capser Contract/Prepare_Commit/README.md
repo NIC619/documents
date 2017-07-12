@@ -38,3 +38,14 @@ sha3(
 
 1. can only commit on a justified ancestry hash
 2. can only commit in the exact same epoch as now, i.e, in epoch 3365 you can only commit on (justified) ancestry hash of epoch 3365, not earlier
+
+## Total deposit of each epoch and dynasty
+
+1. deposit in each epoch fluctuates and depends on how much validators prepare/commit in last epoch, for example, penalty of absense for epoch 100 is paid at the beginning of epoch 101
+2. one dynasty could span more than one epoch and the deposit in a dynasty is the deposit in the epoch which gets finalized (or the latest one)
+![](epoch_and_dynasty_deposit.jpg) 
+3. for a prepare/commit to be finalized, we need enough deposits from both last and current dynasty, for example,
+    * current dynasty is dynasty 35 and it spans from epoch 40 to latest epoch(epoch 43)
+    * previous dynasty, dynasty 34 spans from epoch 38 to epoch 39
+    * now, in order to finalized a prepare/commit in current epoch(epoch 43), we need enough(>2/3) deposits staked on this prepare/commit from both dynasty 34 and dynasty 35
+    * so we need enough deposits in both epoch 39 and epoch 43
